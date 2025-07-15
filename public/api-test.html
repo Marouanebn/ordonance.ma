@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordonance.ma API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .response {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Ordonance.ma API Test</h1>
+
+        <div class="test-section">
+            <h3>1️⃣ Registration Test</h3>
+            <div class="form-group">
+                <label>Name:</label>
+                <input type="text" id="regName" value="Test Patient">
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="regEmail" value="patient@test.com">
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="regPassword" value="password123">
+            </div>
+            <div class="form-group">
+                <label>Confirm Password:</label>
+                <input type="password" id="regPasswordConfirm" value="password123">
+            </div>
+            <div class="form-group">
+                <label>Role:</label>
+                <select id="regRole">
+                    <option value="patient">Patient</option>
+                    <option value="medecin">Medecin</option>
+                    <option value="pharmacien">Pharmacien</option>
+                    <option value="laboratoire">Laboratoire</option>
+                </select>
+            </div>
+            <button onclick="testRegister()">Register</button>
+            <div id="registerResponse" class="response"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2️⃣ Login Test</h3>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="loginEmail" value="patient@test.com">
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="loginPassword" value="password123">
+            </div>
+            <button onclick="testLogin()">Login</button>
+            <div id="loginResponse" class="response"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3️⃣ Protected Route Test</h3>
+            <button onclick="testUserProfile()">Get User Profile</button>
+            <div id="profileResponse" class="response"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4️⃣ Logout Test</h3>
+            <button onclick="testLogout()">Logout</button>
+            <div id="logoutResponse" class="response"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Token Management</h3>
+            <div class="form-group">
+                <label>Current Token:</label>
+                <input type="text" id="currentToken" readonly>
+            </div>
+            <button onclick="clearToken()">Clear Token</button>
+        </div>
+    </div>
+
+    <script>
+        let currentToken = '';
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                const data = await response.json();
+                return { success: response.ok, data, status: response.status };
+            } catch (error) {
+                return { success: false, data: { error: error.message }, status: 0 };
+            }
+        }
+
+        function displayResponse(elementId, result) {
+            const element = document.getElementById(elementId);
+            const statusClass = result.success ? 'success' : 'error';
+            element.innerHTML = `<span class="${statusClass}">Status: ${result.status}</span>\n${JSON.stringify(result.data, null, 2)}`;
+        }
+
+        async function testRegister() {
+            const data = {
+                name: document.getElementById('regName').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value,
+                password_confirmation: document.getElementById('regPasswordConfirm').value,
+                role: document.getElementById('regRole').value
+            };
+
+            const result = await makeRequest('/api/register', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+
+            if (result.success && result.data.data && result.data.data.token) {
+                currentToken = result.data.data.token;
+                document.getElementById('currentToken').value = currentToken;
+            }
+
+            displayResponse('registerResponse', result);
+        }
+
+        async function testLogin() {
+            const data = {
+                email: document.getElementById('loginEmail').value,
+                password: document.getElementById('loginPassword').value
+            };
+
+            const result = await makeRequest('/api/login', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+
+            if (result.success && result.data.data && result.data.data.token) {
+                currentToken = result.data.data.token;
+                document.getElementById('currentToken').value = currentToken;
+            }
+
+            displayResponse('loginResponse', result);
+        }
+
+        async function testUserProfile() {
+            if (!currentToken) {
+                displayResponse('profileResponse', {
+                    success: false,
+                    data: { error: 'No token available. Please login first.' },
+                    status: 401
+                });
+                return;
+            }
+
+            const result = await makeRequest('/api/user', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${currentToken}`
+                }
+            });
+
+            displayResponse('profileResponse', result);
+        }
+
+        async function testLogout() {
+            if (!currentToken) {
+                displayResponse('logoutResponse', {
+                    success: false,
+                    data: { error: 'No token available.' },
+                    status: 401
+                });
+                return;
+            }
+
+            const result = await makeRequest('/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${currentToken}`
+                }
+            });
+
+            if (result.success) {
+                currentToken = '';
+                document.getElementById('currentToken').value = '';
+            }
+
+            displayResponse('logoutResponse', result);
+        }
+
+        function clearToken() {
+            currentToken = '';
+            document.getElementById('currentToken').value = '';
+            alert('Token cleared!');
+        }
+    </script>
+</body>
+</html>

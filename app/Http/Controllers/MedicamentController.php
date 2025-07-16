@@ -12,12 +12,11 @@ class MedicamentController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasRole('pharmacien')) {
-            $medicaments = Medicament::orderBy('nom', 'asc')->paginate(10);
-        } elseif ($user->hasRole('admin')) {
+        // Allow medecin, pharmacien, and admin
+        if ($user->hasAnyRole(['pharmacien', 'admin', 'medecin'])) {
             $medicaments = Medicament::orderBy('nom', 'asc')->paginate(10);
         } else {
-            return response()->json(['message' => 'Forbidden: Only pharmaciens or admin can view medicaments'], 403);
+            return response()->json(['message' => 'Forbidden: Only pharmaciens, medecins, or admin can view medicaments'], 403);
         }
 
         return response()->json([
@@ -28,18 +27,14 @@ class MedicamentController extends Controller
 
     public function store(Request $request)
     {
-        if (!$request->user()->hasAnyRole(['pharmacien', 'admin'])) {
-            return response()->json(['message' => 'Forbidden: Only pharmaciens or admin can create medicaments'], 403);
+        if (!$request->user()->hasAnyRole(['pharmacien', 'admin', 'medecin'])) {
+            return response()->json(['message' => 'Forbidden: Only pharmaciens, medecins, or admin can create medicaments'], 403);
         }
 
         $validator = Validator::make($request->all(), [
             'nom' => 'required|string|max:255',
-            'description' => 'sometimes|string|max:500',
-            'prix' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'categorie' => 'sometimes|string|max:100',
-            'forme' => 'sometimes|string|max:100',
-            'dosage' => 'sometimes|string|max:100',
+            'quantite' => 'required|integer',
+            'disponible' => 'sometimes|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -50,7 +45,7 @@ class MedicamentController extends Controller
             ], 422);
         }
 
-        $medicament = Medicament::create($request->all());
+        $medicament = Medicament::create($validator->validated());
 
         return response()->json([
             'status' => 'success',
@@ -83,12 +78,8 @@ class MedicamentController extends Controller
 
         $validator = Validator::make($request->all(), [
             'nom' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string|max:500',
-            'prix' => 'sometimes|numeric|min:0',
-            'stock' => 'sometimes|integer|min:0',
-            'categorie' => 'sometimes|string|max:100',
-            'forme' => 'sometimes|string|max:100',
-            'dosage' => 'sometimes|string|max:100',
+            'quantite' => 'sometimes|integer',
+            'disponible' => 'sometimes|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -100,7 +91,7 @@ class MedicamentController extends Controller
         }
 
         $medicament = Medicament::findOrFail($id);
-        $medicament->update($request->all());
+        $medicament->update($validator->validated());
 
         return response()->json([
             'status' => 'success',

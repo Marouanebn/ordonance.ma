@@ -88,11 +88,11 @@ class LaboratoireController extends Controller
     public function updateProfile(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nom_complet' => 'sometimes|string|max:255',
+            'nom_laboratoire' => 'sometimes|string|max:255',
             'telephone' => 'sometimes|string|max:20',
             'email' => 'sometimes|email|unique:users,email,' . $request->user()->id,
-            'numero_laboratoire' => 'sometimes|string|unique:laboratoires,numero_laboratoire',
-            'adresse_laboratoire' => 'sometimes|string|max:255',
+            'numero_autorisation' => 'sometimes|string|unique:laboratoires,numero_autorisation',
+            'adresse' => 'sometimes|string|max:255',
             'ville' => 'sometimes|string|max:100',
         ]);
 
@@ -123,10 +123,10 @@ class LaboratoireController extends Controller
 
         // Update laboratoire data
         $laboratoire->update($request->only([
-            'nom_complet',
+            'nom_laboratoire',
             'telephone',
-            'numero_laboratoire',
-            'adresse_laboratoire',
+            'numero_autorisation',
+            'adresse',
             'ville'
         ]));
 

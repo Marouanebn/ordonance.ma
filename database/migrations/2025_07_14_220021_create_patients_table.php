@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('patients', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('medecin_id')->nullable()->constrained('medecins')->nullOnDelete();
             $table->string('nom_complet');
             $table->string('telephone');
             $table->string('email')->nullable();

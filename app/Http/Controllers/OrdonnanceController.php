@@ -192,6 +192,12 @@ class OrdonnanceController extends Controller
         if ($request->has('detail')) {
             $ordonnance->detail = $request->detail;
         }
+        if ($request->status === 'validated') {
+            $pharmacien = $user->pharmacien;
+            if ($pharmacien) {
+                $ordonnance->validated_by_pharmacie_id = $pharmacien->id;
+            }
+        }
         $ordonnance->save();
         return response()->json([
             'status' => 'success',
@@ -254,6 +260,28 @@ class OrdonnanceController extends Controller
             'status' => 'success',
             'message' => 'Medicament added to ordonnance successfully',
             'data' => $ordonnance->fresh()->load(['patient.user', 'medecin.user', 'medicaments'])
+        ]);
+    }
+
+    public function validatedByPharmacien(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('pharmacien')) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+        $pharmacien = $user->pharmacien;
+        if (!$pharmacien) {
+            return response()->json(['message' => 'Pharmacien profile not found'], 404);
+        }
+        $ordonnances = \App\Models\Ordonnance::where('status', 'validated')
+            ->where('validated_by_pharmacie_id', $pharmacien->id)
+            ->with(['patient.user', 'medecin.user', 'medicaments', 'validatedByPharmacie'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $ordonnances
         ]);
     }
 }

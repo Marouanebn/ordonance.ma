@@ -88,10 +88,9 @@ class PharmacienController extends Controller
     public function updateProfile(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nom_complet' => 'sometimes|string|max:255',
+            'nom_pharmacie' => 'sometimes|string|max:255',
             'telephone' => 'sometimes|string|max:20',
             'email' => 'sometimes|email|unique:users,email,' . $request->user()->id,
-            'numero_pharmacie' => 'sometimes|string|unique:pharmaciens,numero_pharmacie',
             'adresse_pharmacie' => 'sometimes|string|max:255',
             'ville' => 'sometimes|string|max:100',
         ]);
@@ -123,9 +122,8 @@ class PharmacienController extends Controller
 
         // Update pharmacien data
         $pharmacien->update($request->only([
-            'nom_complet',
+            'nom_pharmacie',
             'telephone',
-            'numero_pharmacie',
             'adresse_pharmacie',
             'ville'
         ]));

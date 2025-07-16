@@ -13,6 +13,7 @@ class Ordonnance extends Model
         'date_prescription',
         'detail',
         'status', // possible values: active, validated, rejected, dispensed
+        'validated_by_pharmacie_id',
     ];
 
     public function patient()
@@ -29,5 +30,10 @@ class Ordonnance extends Model
     {
         return $this->belongsToMany(Medicament::class)
             ->withPivot('quantite');
+    }
+
+    public function validatedByPharmacie()
+    {
+        return $this->belongsTo(Pharmacien::class, 'validated_by_pharmacie_id');
     }
 }

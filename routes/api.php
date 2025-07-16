@@ -67,6 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/pharmacien/patients/search', [PharmacienController::class, 'searchPatients']);
         Route::get('/pharmacien/patients/{patient}/ordonnances', [PharmacienController::class, 'patientOrdonnances']);
         Route::put('/pharmacien/ordonnances/{ordonnance}/status', [OrdonnanceController::class, 'updateStatus']);
+        Route::get('/pharmacien/ordonnances/validated', [OrdonnanceController::class, 'validatedByPharmacien']);
     });
 
     // Laboratoire routes
@@ -101,8 +102,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/laboratoires/{laboratoire}', [LaboratoireController::class, 'show']);
     Route::get('/medicaments', [MedicamentController::class, 'index']);
     Route::get('/medicaments/{medicament}', [MedicamentController::class, 'show']);
+    Route::post('/medicaments', [MedicamentController::class, 'store']);
     Route::get('/ordonnances', [OrdonnanceController::class, 'index']);
     Route::get('/ordonnances/{ordonnance}', [OrdonnanceController::class, 'show']);
     Route::get('/demandes-laboratoire', [DemandeLaboratoireController::class, 'index']);
     Route::get('/demandes-laboratoire/{demande}', [DemandeLaboratoireController::class, 'show']);
+    Route::get('/patients', [PatientController::class, 'index']);
 });

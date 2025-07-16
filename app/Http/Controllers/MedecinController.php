@@ -94,7 +94,7 @@ class MedecinController extends Controller
             'telephone' => 'sometimes|string|max:20',
             'email' => 'sometimes|email|unique:users,email,' . $request->user()->id,
             'specialite' => 'sometimes|string|max:255',
-            'numero_ordre' => 'sometimes|string|unique:medecins,numero_ordre',
+            'numero_cnom' => 'sometimes|string|unique:medecins,numero_cnom',
             'adresse_cabinet' => 'sometimes|string|max:255',
             'ville' => 'sometimes|string|max:100',
         ]);
@@ -129,7 +129,7 @@ class MedecinController extends Controller
             'nom_complet',
             'telephone',
             'specialite',
-            'numero_ordre',
+            'numero_cnom',
             'adresse_cabinet',
             'ville'
         ]));

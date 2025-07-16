@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('date_prescription');
             $table->string('status')->default('active'); // active, validated, rejected, dispensed
             $table->text('detail')->nullable();
+            $table->foreignId('validated_by_pharmacie_id')->nullable()->constrained('pharmaciens')->nullOnDelete();
             $table->timestamps();
         });
 

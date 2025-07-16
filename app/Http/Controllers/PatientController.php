@@ -119,4 +119,17 @@ class PatientController extends Controller
             'data' => $ordonnances
         ]);
     }
+
+    public function index(Request $request)
+    {
+        // Only medecin, admin, or pharmacien can fetch all patients
+        if (!$request->user()->hasAnyRole(['medecin', 'admin', 'pharmacien'])) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+        $patients = \App\Models\Patient::with('user')->orderBy('created_at', 'desc')->get();
+        return response()->json([
+            'status' => 'success',
+            'data' => $patients
+        ]);
+    }
 }

@@ -6,6 +6,8 @@ use App\Models\Ordonnance;
 use App\Models\Medicament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 
 class OrdonnanceController extends Controller
 {
@@ -55,9 +57,10 @@ class OrdonnanceController extends Controller
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors()->all();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed',
+                'message' => $errors[0] ?? 'Validation error.',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -141,9 +144,10 @@ class OrdonnanceController extends Controller
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors()->all();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed',
+                'message' => $errors[0] ?? 'Validation error.',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -182,9 +186,10 @@ class OrdonnanceController extends Controller
             'detail' => 'sometimes|string|max:500',
         ]);
         if ($validator->fails()) {
+            $errors = $validator->errors()->all();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed',
+                'message' => $errors[0] ?? 'Validation error.',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -245,9 +250,10 @@ class OrdonnanceController extends Controller
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors()->all();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed',
+                'message' => $errors[0] ?? 'Validation error.',
                 'errors' => $validator->errors()
             ], 422);
         }

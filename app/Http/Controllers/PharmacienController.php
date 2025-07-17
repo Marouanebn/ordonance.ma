@@ -93,12 +93,16 @@ class PharmacienController extends Controller
             'email' => 'sometimes|email|unique:users,email,' . $request->user()->id,
             'adresse_pharmacie' => 'sometimes|string|max:255',
             'ville' => 'sometimes|string|max:100',
+            // File fields
+            'identity_document' => 'sometimes|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'diploma' => 'sometimes|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors()->all();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed',
+                'message' => $errors[0] ?? 'Validation error.',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -120,13 +124,23 @@ class PharmacienController extends Controller
             $user->update(['email' => $request->email]);
         }
 
-        // Update pharmacien data
-        $pharmacien->update($request->only([
+        // Handle file uploads
+        $updateData = $request->only([
             'nom_pharmacie',
             'telephone',
             'adresse_pharmacie',
             'ville'
-        ]));
+        ]);
+        if ($request->hasFile('piece_identite_recto')) {
+            $updateData['piece_identite_recto'] = $request->file('piece_identite_recto')->store('documents/identity', 'public');
+        }
+        if ($request->hasFile('piece_identite_verso')) {
+            $updateData['piece_identite_verso'] = $request->file('piece_identite_verso')->store('documents/identity', 'public');
+        }
+        if ($request->hasFile('diplome')) {
+            $updateData['diplome'] = $request->file('diplome')->store('documents/diplomas', 'public');
+        }
+        $pharmacien->update($updateData);
 
         return response()->json([
             'status' => 'success',
@@ -147,6 +161,7 @@ class PharmacienController extends Controller
         $patients = \App\Models\Patient::with('user')
             ->where(function ($q) use ($query) {
                 $q->where('id', $query)
+                    ->orWhere('cin', $query)
                     ->orWhere('nom_complet', 'like', "%$query%")
                     ->orWhereHas('user', function ($uq) use ($query) {
                         $uq->where('name', 'like', "%$query%")

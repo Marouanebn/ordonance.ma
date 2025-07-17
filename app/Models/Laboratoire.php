@@ -16,6 +16,9 @@ class Laboratoire extends Model
         'ville',
         'numero_autorisation',
         'statut',
+        'piece_identite_recto',
+        'piece_identite_verso',
+        'diplome',
     ];
 
     public function user()

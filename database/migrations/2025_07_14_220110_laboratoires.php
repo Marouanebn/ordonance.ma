@@ -22,6 +22,9 @@ return new class extends Migration
             $table->string('ville')->nullable();
             $table->string('numero_autorisation')->unique()->nullable();
             $table->enum('statut', ['actif', 'inactif'])->nullable();
+            $table->string('piece_identite_recto')->nullable();
+            $table->string('piece_identite_verso')->nullable();
+            $table->string('diplome')->nullable();
             $table->timestamps();
         });
     }

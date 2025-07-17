@@ -38,9 +38,10 @@ class MedicamentController extends Controller
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors()->all();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed',
+                'message' => $errors[0] ?? 'Validation error.',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -58,8 +59,8 @@ class MedicamentController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->hasAnyRole(['pharmacien', 'admin'])) {
-            return response()->json(['message' => 'Forbidden: Only pharmaciens or admin can view medicaments'], 403);
+        if (!$user->hasAnyRole(['pharmacien', 'admin', 'medecin'])) {
+            return response()->json(['message' => 'Forbidden: Only pharmaciens, medecins, or admin can view medicaments'], 403);
         }
 
         $medicament = Medicament::findOrFail($id);
@@ -72,8 +73,8 @@ class MedicamentController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (!$request->user()->hasAnyRole(['pharmacien', 'admin'])) {
-            return response()->json(['message' => 'Forbidden: Only pharmaciens or admin can update medicaments'], 403);
+        if (!$request->user()->hasAnyRole(['pharmacien', 'admin', 'medecin'])) {
+            return response()->json(['message' => 'Forbidden: Only pharmaciens, medecins, or admin can update medicaments'], 403);
         }
 
         $validator = Validator::make($request->all(), [
@@ -83,9 +84,10 @@ class MedicamentController extends Controller
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors()->all();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed',
+                'message' => $errors[0] ?? 'Validation error.',
                 'errors' => $validator->errors()
             ], 422);
         }

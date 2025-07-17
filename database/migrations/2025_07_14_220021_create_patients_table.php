@@ -16,15 +16,12 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('medecin_id')->nullable()->constrained('medecins')->nullOnDelete();
             $table->string('nom_complet');
+            $table->string('cin')->unique();
             $table->string('telephone');
             $table->string('email')->nullable();
             $table->date('date_naissance');
-            $table->string('adresse');
-            $table->string('ville');
             $table->enum('genre', ['homme', 'femme']);
             $table->string('numero_securite_sociale')->unique()->nullable();
-            $table->text('antecedents_medicaux')->nullable();
-            $table->text('allergies')->nullable();
             $table->timestamps();
         });
     }

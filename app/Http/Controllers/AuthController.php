@@ -20,14 +20,11 @@ class AuthController extends Controller
             'role' => 'required|in:patient,medecin,pharmacien,laboratoire,admin',
 
             // Patient fields
+            'cin' => 'required_if:role,patient|string|max:20|unique:patients,cin',
             'telephone' => 'required_if:role,patient|string|max:20',
             'date_naissance' => 'required_if:role,patient|date',
-            'adresse' => 'required_if:role,patient|string|max:255',
-            'ville' => 'required_if:role,patient|string|max:100',
             'genre' => 'required_if:role,patient|in:homme,femme',
             'numero_securite_sociale' => 'nullable|string|unique:patients,numero_securite_sociale',
-            'antecedents_medicaux' => 'nullable|string',
-            'allergies' => 'nullable|string',
 
             // Medecin fields
             'telephone_medecin' => 'required_if:role,medecin|string|max:20',
@@ -52,12 +49,19 @@ class AuthController extends Controller
             'ville_laboratoire' => 'required_if:role,laboratoire|string|max:100',
             'numero_autorisation' => 'required_if:role,laboratoire|string|unique:laboratoires,numero_autorisation',
             'statut_laboratoire' => 'required_if:role,laboratoire|in:actif,inactif',
+
+            // File fields for Medecin
+            'piece_identite_recto' => 'required_if:role,medecin,pharmacien,laboratoire|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'piece_identite_verso' => 'required_if:role,medecin,pharmacien,laboratoire|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'diplome' => 'required_if:role,medecin,pharmacien,laboratoire|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'attestation_cnom' => 'required_if:role,medecin|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors()->all();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed',
+                'message' => $errors[0] ?? 'Validation error.',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -70,20 +74,35 @@ class AuthController extends Controller
 
         $user->assignRole($request->role);
 
+        // Handle file uploads
+        $pieceIdentiteRectoPath = null;
+        $pieceIdentiteVersoPath = null;
+        $diplomePath = null;
+        $attestationCnomPath = null;
+        if ($request->hasFile('piece_identite_recto')) {
+            $pieceIdentiteRectoPath = $request->file('piece_identite_recto')->store('documents/identity', 'public');
+        }
+        if ($request->hasFile('piece_identite_verso')) {
+            $pieceIdentiteVersoPath = $request->file('piece_identite_verso')->store('documents/identity', 'public');
+        }
+        if ($request->hasFile('diplome')) {
+            $diplomePath = $request->file('diplome')->store('documents/diplomas', 'public');
+        }
+        if ($request->hasFile('attestation_cnom')) {
+            $attestationCnomPath = $request->file('attestation_cnom')->store('documents/attestations', 'public');
+        }
+
         // Automatically create the corresponding profile model
         if ($request->role === 'patient') {
             \App\Models\Patient::create([
                 'user_id' => $user->id,
                 'nom_complet' => $request->name,
+                'cin' => $request->cin,
                 'email' => $request->email,
                 'telephone' => $request->telephone,
                 'date_naissance' => $request->date_naissance,
-                'adresse' => $request->adresse,
-                'ville' => $request->ville,
                 'genre' => $request->genre,
                 'numero_securite_sociale' => $request->numero_securite_sociale,
-                'antecedents_medicaux' => $request->antecedents_medicaux,
-                'allergies' => $request->allergies,
             ]);
         } elseif ($request->role === 'medecin') {
             \App\Models\Medecin::create([
@@ -95,6 +114,10 @@ class AuthController extends Controller
                 'adresse_cabinet' => $request->adresse_cabinet,
                 'ville' => $request->ville_medecin,
                 'statut' => $request->statut_medecin,
+                'piece_identite_recto' => $pieceIdentiteRectoPath,
+                'piece_identite_verso' => $pieceIdentiteVersoPath,
+                'diplome' => $diplomePath,
+                'attestation_cnom' => $attestationCnomPath,
             ]);
         } elseif ($request->role === 'pharmacien') {
             \App\Models\Pharmacien::create([
@@ -104,6 +127,9 @@ class AuthController extends Controller
                 'adresse_pharmacie' => $request->adresse_pharmacie,
                 'ville' => $request->ville_pharmacien,
                 'statut' => $request->statut_pharmacien,
+                'piece_identite_recto' => $pieceIdentiteRectoPath,
+                'piece_identite_verso' => $pieceIdentiteVersoPath,
+                'diplome' => $diplomePath,
             ]);
         } elseif ($request->role === 'laboratoire') {
             \App\Models\Laboratoire::create([
@@ -115,6 +141,9 @@ class AuthController extends Controller
                 'ville' => $request->ville_laboratoire,
                 'numero_autorisation' => $request->numero_autorisation,
                 'statut' => $request->statut_laboratoire,
+                'piece_identite_recto' => $pieceIdentiteRectoPath,
+                'piece_identite_verso' => $pieceIdentiteVersoPath,
+                'diplome' => $diplomePath,
             ]);
         }
 
@@ -138,9 +167,10 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors()->all();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed',
+                'message' => $errors[0] ?? 'Validation error.',
                 'errors' => $validator->errors()
             ], 422);
         }

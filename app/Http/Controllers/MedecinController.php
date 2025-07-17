@@ -97,12 +97,17 @@ class MedecinController extends Controller
             'numero_cnom' => 'sometimes|string|unique:medecins,numero_cnom',
             'adresse_cabinet' => 'sometimes|string|max:255',
             'ville' => 'sometimes|string|max:100',
+            // File fields
+            'identity_document' => 'sometimes|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'diploma' => 'sometimes|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'attestation_cnom' => 'sometimes|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors()->all();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed',
+                'message' => $errors[0] ?? 'Validation error.',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -124,15 +129,28 @@ class MedecinController extends Controller
             $user->update(['email' => $request->email]);
         }
 
-        // Update medecin data
-        $medecin->update($request->only([
+        // Handle file uploads
+        $updateData = $request->only([
             'nom_complet',
             'telephone',
             'specialite',
             'numero_cnom',
             'adresse_cabinet',
             'ville'
-        ]));
+        ]);
+        if ($request->hasFile('piece_identite_recto')) {
+            $updateData['piece_identite_recto'] = $request->file('piece_identite_recto')->store('documents/identity', 'public');
+        }
+        if ($request->hasFile('piece_identite_verso')) {
+            $updateData['piece_identite_verso'] = $request->file('piece_identite_verso')->store('documents/identity', 'public');
+        }
+        if ($request->hasFile('diplome')) {
+            $updateData['diplome'] = $request->file('diplome')->store('documents/diplomas', 'public');
+        }
+        if ($request->hasFile('attestation_cnom')) {
+            $updateData['attestation_cnom'] = $request->file('attestation_cnom')->store('documents/attestations', 'public');
+        }
+        $medecin->update($updateData);
 
         return response()->json([
             'status' => 'success',

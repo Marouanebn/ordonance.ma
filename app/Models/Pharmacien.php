@@ -16,6 +16,9 @@ class Pharmacien extends Model
         'statut',
         'document_justificatif_url',
         'photo_url',
+        'piece_identite_recto',
+        'piece_identite_verso',
+        'diplome',
     ];
 
     public function user()

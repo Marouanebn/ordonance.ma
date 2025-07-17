@@ -22,6 +22,10 @@ return new class extends Migration
             $table->string('adresse_cabinet');
             $table->string('ville');
             $table->string('photo_profil')->nullable();
+            $table->string('piece_identite_recto')->nullable();
+            $table->string('piece_identite_verso')->nullable();
+            $table->string('diplome')->nullable();
+            $table->string('attestation_cnom')->nullable();
             $table->enum('statut', ['actif', 'inactif']);
             $table->timestamps();
         });

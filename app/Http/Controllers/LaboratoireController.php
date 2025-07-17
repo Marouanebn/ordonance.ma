@@ -94,12 +94,16 @@ class LaboratoireController extends Controller
             'numero_autorisation' => 'sometimes|string|unique:laboratoires,numero_autorisation',
             'adresse' => 'sometimes|string|max:255',
             'ville' => 'sometimes|string|max:100',
+            // File fields
+            'identity_document' => 'sometimes|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'diploma' => 'sometimes|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors()->all();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed',
+                'message' => $errors[0] ?? 'Validation error.',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -121,14 +125,24 @@ class LaboratoireController extends Controller
             $user->update(['email' => $request->email]);
         }
 
-        // Update laboratoire data
-        $laboratoire->update($request->only([
+        // Handle file uploads
+        $updateData = $request->only([
             'nom_laboratoire',
             'telephone',
             'numero_autorisation',
             'adresse',
             'ville'
-        ]));
+        ]);
+        if ($request->hasFile('piece_identite_recto')) {
+            $updateData['piece_identite_recto'] = $request->file('piece_identite_recto')->store('documents/identity', 'public');
+        }
+        if ($request->hasFile('piece_identite_verso')) {
+            $updateData['piece_identite_verso'] = $request->file('piece_identite_verso')->store('documents/identity', 'public');
+        }
+        if ($request->hasFile('diplome')) {
+            $updateData['diplome'] = $request->file('diplome')->store('documents/diplomas', 'public');
+        }
+        $laboratoire->update($updateData);
 
         return response()->json([
             'status' => 'success',

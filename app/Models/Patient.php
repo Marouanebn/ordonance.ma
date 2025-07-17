@@ -9,15 +9,12 @@ class Patient extends Model
     protected $fillable = [
         'user_id',
         'nom_complet',
+        'cin',
         'telephone',
         'email',
         'date_naissance',
-        'adresse',
-        'ville',
         'genre',
         'numero_securite_sociale',
-        'antecedents_medicaux',
-        'allergies'
     ];
 
     protected $casts = [

@@ -36,21 +36,19 @@ class PatientController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'nom_complet' => 'sometimes|string|max:255',
+            'cin' => 'sometimes|string|max:20|unique:patients,cin,' . ($request->user()->patient->id ?? 'NULL'),
             'telephone' => 'sometimes|string|max:20',
             'email' => 'sometimes|email|unique:users,email,' . $request->user()->id,
             'date_naissance' => 'sometimes|date',
-            'adresse' => 'sometimes|string|max:255',
-            'ville' => 'sometimes|string|max:100',
             'genre' => 'sometimes|in:homme,femme',
             'numero_securite_sociale' => 'sometimes|string|unique:patients,numero_securite_sociale',
-            'antecedents_medicaux' => 'sometimes|string',
-            'allergies' => 'sometimes|string',
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors()->all();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed',
+                'message' => $errors[0] ?? 'Validation error.',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -75,14 +73,11 @@ class PatientController extends Controller
         // Update patient data
         $patient->update($request->only([
             'nom_complet',
+            'cin',
             'telephone',
             'date_naissance',
-            'adresse',
-            'ville',
             'genre',
             'numero_securite_sociale',
-            'antecedents_medicaux',
-            'allergies'
         ]));
 
         return response()->json([

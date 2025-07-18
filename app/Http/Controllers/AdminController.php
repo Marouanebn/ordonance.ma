@@ -12,7 +12,41 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
-        return view('admin.dashboard');
+        $totalPatients = \App\Models\Patient::count();
+        $totalMedecins = \App\Models\Medecin::count();
+        $totalPharmacies = \App\Models\Pharmacien::count();
+        $totalOrdonnances = \App\Models\Ordonnance::count();
+
+        // Line chart: ordonnances per month (last 8 months)
+        $lineChart = \App\Models\Ordonnance::selectRaw('MONTH(created_at) as month, COUNT(*) as count')
+            ->where('created_at', '>=', now()->subMonths(8))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'month' => $row->month,
+                    'count' => $row->count
+                ];
+            });
+
+        // Pie chart: repartition by laboratoire (example: count demandes per lab)
+        $pieChart = \App\Models\Laboratoire::withCount('demandes')->get()
+            ->map(function ($lab) {
+                return [
+                    'label' => $lab->nom_laboratoire ?? $lab->id,
+                    'count' => $lab->demandes_count
+                ];
+            });
+
+        return view('admin.dashboard', [
+            'totalPatients' => $totalPatients,
+            'totalMedecins' => $totalMedecins,
+            'totalPharmacies' => $totalPharmacies,
+            'totalOrdonnances' => $totalOrdonnances,
+            'lineChart' => $lineChart,
+            'pieChart' => $pieChart,
+        ]);
     }
 
     public function medecins()

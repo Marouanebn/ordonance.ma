@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminPatientController;
 use App\Http\Controllers\AdminPharmacyController;
 use App\Http\Controllers\AdminOrdonnanceController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\StatsController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -27,6 +28,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/patients', [AdminPatientController::class, 'index'])->name('admin.patients');
     Route::get('/admin/pharmacies', [AdminPharmacyController::class, 'index'])->name('admin.pharmacies');
     Route::get('/admin/ordonnances', [AdminOrdonnanceController::class, 'index'])->name('admin.ordonnances');
+    Route::get('/admin/stats', [StatsController::class, 'admin']);
 
     Route::resource('/admin/medecins', AdminMedecinController::class)->only(['edit', 'update', 'destroy'])->names([
         'edit' => 'admin.medecins.edit',

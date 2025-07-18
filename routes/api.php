@@ -110,4 +110,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/demandes-laboratoire', [DemandeLaboratoireController::class, 'index']);
     Route::get('/demandes-laboratoire/{demande}', [DemandeLaboratoireController::class, 'show']);
     Route::get('/patients', [PatientController::class, 'index']);
+    Route::get('/stats/patient', [\App\Http\Controllers\StatsController::class, 'patient']);
+    Route::get('/stats/pharmacien', [\App\Http\Controllers\StatsController::class, 'pharmacien']);
+    Route::get('/stats/medecin', [\App\Http\Controllers\StatsController::class, 'medecin']);
 });

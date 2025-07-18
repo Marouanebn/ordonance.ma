@@ -105,6 +105,37 @@ class PatientController extends Controller
         }
 
         $ordonnances = $patient->ordonnances()
+            ->where(function ($query) {
+                $query->where('status', 'active')
+                    ->orWhereNull('status');
+            })
+            ->with(['medecin.user', 'medicaments'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $ordonnances
+        ]);
+    }
+
+    public function ordonnancesArchivees(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('patient')) {
+            return response()->json(['message' => 'Forbidden: Only patients can access this'], 403);
+        }
+        $patient = $user->patient;
+        if (!$patient) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Patient profile not found'
+            ], 404);
+        }
+
+        $ordonnances = $patient->ordonnances()
+            ->where('status', '!=', 'active')
+            ->whereNotNull('status')
             ->with(['medecin.user', 'medicaments'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);

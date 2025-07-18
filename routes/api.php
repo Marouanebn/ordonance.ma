@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/patient/profile', [PatientController::class, 'profile']);
         Route::put('/patient/profile', [PatientController::class, 'updateProfile']);
         Route::get('/patient/ordonnances', [PatientController::class, 'ordonnances']);
+        Route::get('/patient/ordonnances-archivees', [PatientController::class, 'ordonnancesArchivees']);
     });
 
     // Medecin routes

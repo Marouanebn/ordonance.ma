@@ -105,6 +105,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/medicaments', [MedicamentController::class, 'store']);
     Route::get('/ordonnances', [OrdonnanceController::class, 'index']);
     Route::get('/ordonnances/{ordonnance}', [OrdonnanceController::class, 'show']);
+    Route::get('/ordonnances/{ordonnance}/download', [OrdonnanceController::class, 'downloadPdf']);
+    Route::post('/ordonnances/bulk-download', [OrdonnanceController::class, 'downloadBulkPdf']);
     Route::get('/demandes-laboratoire', [DemandeLaboratoireController::class, 'index']);
     Route::get('/demandes-laboratoire/{demande}', [DemandeLaboratoireController::class, 'show']);
     Route::get('/patients', [PatientController::class, 'index']);

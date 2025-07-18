@@ -290,4 +290,68 @@ class OrdonnanceController extends Controller
             'data' => $ordonnances
         ]);
     }
+
+    public function downloadPdf(Request $request, $id)
+    {
+        $ordonnance = Ordonnance::with(['patient.user', 'medecin.user', 'medicaments'])->findOrFail($id);
+        $user = $request->user();
+        // Permission check (same as show)
+        if ($user->hasRole('medecin')) {
+            $medecin = $user->medecin;
+            if (!$medecin || $ordonnance->medecin_id !== $medecin->id) {
+                return response()->json(['message' => 'Forbidden: You can only view your own ordonnances'], 403);
+            }
+        } elseif ($user->hasRole('patient')) {
+            $patient = $user->patient;
+            if (!$patient || $ordonnance->patient_id !== $patient->id) {
+                return response()->json(['message' => 'Forbidden: You can only view your own ordonnances'], 403);
+            }
+        } elseif (!$user->hasRole('admin')) {
+            return response()->json(['message' => 'Forbidden: Access denied'], 403);
+        }
+        // Generate PDF
+        $pdf = Pdf::loadView('ordonnance_pdf', ['ordonnance' => $ordonnance]);
+        $filename = 'ordonnance_' . $ordonnance->id . '.pdf';
+        return $pdf->download($filename);
+    }
+
+    public function downloadBulkPdf(Request $request)
+    {
+        $ids = $request->input('ordonnance_ids', []);
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['message' => 'No ordonnances selected.'], 400);
+        }
+        $user = $request->user();
+        $ordonnances = \App\Models\Ordonnance::with(['patient.user', 'medecin.user', 'medicaments'])
+            ->whereIn('id', $ids)
+            ->get();
+        // Permission check for each ordonnance
+        foreach ($ordonnances as $ordonnance) {
+            if ($user->hasRole('medecin')) {
+                $medecin = $user->medecin;
+                if (!$medecin || $ordonnance->medecin_id !== $medecin->id) {
+                    return response()->json(['message' => 'Forbidden: You can only view your own ordonnances'], 403);
+                }
+            } elseif ($user->hasRole('patient')) {
+                $patient = $user->patient;
+                if (!$patient || $ordonnance->patient_id !== $patient->id) {
+                    return response()->json(['message' => 'Forbidden: You can only view your own ordonnances'], 403);
+                }
+            } elseif (!$user->hasRole('admin')) {
+                return response()->json(['message' => 'Forbidden: Access denied'], 403);
+            }
+        }
+        // Generate PDF with each ordonnance on a new page
+        $pdf = app('dompdf.wrapper');
+        $html = '';
+        foreach ($ordonnances as $i => $ordonnance) {
+            if ($i > 0) {
+                $html .= '<div style="page-break-after: always;"></div>';
+            }
+            $html .= view('ordonnance_pdf', ['ordonnance' => $ordonnance])->render();
+        }
+        $pdf->loadHTML($html);
+        $filename = 'ordonnances_bulk.pdf';
+        return $pdf->download($filename);
+    }
 }
